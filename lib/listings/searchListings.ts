@@ -3,9 +3,8 @@
 // 지금은 샘플 데이터로만 동작한다. 네이버 부동산에는 접속하지 않는다.
 // (조회 방식 결정: docs/naver-terms-check.md — A. 샘플 데이터 우선)
 //
-// 아직 하지 않는 것 (뒤 작업에서 추가):
-// - 금액 범위로 걸러내기 (PLAN 7번)
-// - 1분 안에 결과가 없으면 "조회 실패" (PLAN 6번)
+// 이 함수는 지역·형태만 맞춘다. 금액 범위 걸러내기(filterByPrice)와
+// 1분 제한(withTimeout)은 요청 처리(createSearchHandler)에서 이어서 적용한다.
 
 import type { Listing, SearchCondition } from "@/types/listing";
 import { sampleListings } from "./sampleListings";

@@ -5,6 +5,7 @@
 // Plan SC: 1분 안에 결과가 없으면 임의로 채우지 않고 "조회 실패"로 알린다
 
 import type { Listing, SearchCondition } from "@/types/listing";
+import { filterByPrice } from "./filterByPrice";
 import { validateSearchCondition } from "./validateSearchCondition";
 import { SearchTimeoutError, withTimeout } from "./withTimeout";
 
@@ -45,7 +46,10 @@ export function createSearchHandler({ search, timeoutMs }: SearchHandlerOptions)
 
     // 3) 제한 시간 안에 매물을 조회한다. 실패하면 임의로 채우지 않고 "조회 실패"로 알린다
     try {
-      const listings = await withTimeout(search(validation.value), timeoutMs);
+      const fetched = await withTimeout(search(validation.value), timeoutMs);
+      // 선택한 금액 범위를 벗어난 매물은 여기서 뺀다
+      const { priceMin, priceMax } = validation.value;
+      const listings = filterByPrice(fetched, priceMin, priceMax);
       return Response.json({
         listings,
         fetchedAt: new Date().toISOString(),
