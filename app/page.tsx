@@ -1,5 +1,5 @@
 // 첫 화면
-// Design Ref: DESIGN.md §1 "화면 구성" — ① 제목, ② 검색 조건 (③ 결과, ④ 연락처는 뒤 작업에서 추가)
+// Design Ref: DESIGN.md §1 "화면 구성" — ① 제목, ② 검색 조건, ③ 검색 결과 (④ 연락처는 뒤 작업에서 추가)
 
 import SearchPanel from "@/components/SearchPanel";
 

@@ -4,9 +4,11 @@
 // Design Ref: DESIGN.md §1 — 금액(최소~최대), 지역, 부동산 형태, 검색 버튼
 // Plan SC: 검색 버튼을 누를 때만 조회한다. 자동 반복 조회는 하지 않는다.
 //
-// 매물 목록 화면은 PLAN 9번에서 만든다. 지금은 조회 상태를 한 줄로만 보여준다.
+// 조회 상태 한 줄(조회 시각·건수·실패 안내)과 매물 목록(ListingList)도 함께 보여준다.
 
 import { useState, type FormEvent } from "react";
+import ListingList from "@/components/ListingList";
+import type { Listing } from "@/types/listing";
 import {
   PROPERTY_TYPE_OPTIONS,
   REGION_OPTIONS,
@@ -21,7 +23,7 @@ type Status =
   | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "done"; total: number; fetchedAt: string };
+  | { kind: "done"; total: number; fetchedAt: string; listings: Listing[] };
 
 const inputClass =
   "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-base text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50";
@@ -70,7 +72,12 @@ export default function SearchPanel() {
         });
         return;
       }
-      setStatus({ kind: "done", total: data.total, fetchedAt: data.fetchedAt });
+      setStatus({
+        kind: "done",
+        total: data.total,
+        fetchedAt: data.fetchedAt,
+        listings: data.listings,
+      });
     } catch {
       setStatus({
         kind: "error",
@@ -166,7 +173,7 @@ export default function SearchPanel() {
         </button>
       </form>
 
-      {/* 조회 상태 한 줄 (목록은 PLAN 9번에서 만든다) */}
+      {/* 조회 상태 한 줄: 안내, 조회 중, 조회 실패, 조회 시각과 건수 */}
       <p role="status" className="mt-4 min-h-6 text-base text-zinc-700 dark:text-zinc-300">
         {status.kind === "idle" && "조건을 입력하고 검색하세요."}
         {status.kind === "loading" && "조회 중…"}
@@ -176,8 +183,15 @@ export default function SearchPanel() {
         {status.kind === "done" &&
           (status.total === 0
             ? "조건에 맞는 매물이 없습니다."
-            : `${status.total}건을 조회했습니다. (조회 시각: ${new Date(status.fetchedAt).toLocaleString("ko-KR")})`)}
+            : `조회 시각: ${new Date(status.fetchedAt).toLocaleString("ko-KR")} (${status.total}건)`)}
       </p>
+
+      {/* 매물 목록: 조회에 성공하고 결과가 있을 때만 보여준다 (실패 시에는 비워 둔다) */}
+      {status.kind === "done" && status.total > 0 && (
+        <div className="mt-4">
+          <ListingList listings={status.listings} />
+        </div>
+      )}
     </section>
   );
 }
