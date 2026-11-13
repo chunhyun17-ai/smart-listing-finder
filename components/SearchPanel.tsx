@@ -9,6 +9,7 @@
 import { useState, type FormEvent } from "react";
 import ListingList from "@/components/ListingList";
 import ResultSummary from "@/components/ResultSummary";
+import { describeResult } from "@/lib/format/describeResult";
 import { FetchTimeoutError, fetchJsonWithTimeout } from "@/lib/http/fetchJsonWithTimeout";
 import { CLIENT_SEARCH_TIMEOUT_MS } from "@/lib/listings/constants";
 import { filterCleanListings, summarizeSuspicions } from "@/lib/suspicion/summarize";
@@ -211,10 +212,7 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
         {status.kind === "error" && (
           <span className="text-red-600 dark:text-red-400">{status.message}</span>
         )}
-        {status.kind === "done" &&
-          (status.total === 0
-            ? "조건에 맞는 매물이 없습니다."
-            : `조회 시각: ${new Date(status.fetchedAt).toLocaleString("ko-KR")} (${status.total}건)`)}
+        {status.kind === "done" && describeResult(status.total, status.fetchedAt)}
       </p>
 
       {/* 매물 목록: 조회에 성공하고 결과가 있을 때만 보여준다 (실패 시에는 비워 둔다) */}
