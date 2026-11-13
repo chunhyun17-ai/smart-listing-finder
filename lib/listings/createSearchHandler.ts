@@ -5,6 +5,7 @@
 // Plan SC: 1분 안에 결과가 없으면 임의로 채우지 않고 "조회 실패"로 알린다
 
 import type { Listing, SearchCondition } from "@/types/listing";
+import { readJsonBody } from "../http/readJsonBody";
 import { assessListings } from "../suspicion/assessListings";
 import { filterByPrice } from "./filterByPrice";
 import { validateSearchCondition } from "./validateSearchCondition";
@@ -31,16 +32,12 @@ function errorResponse(status: number, code: string, message: string) {
 /** POST 요청을 처리하는 함수를 만든다 */
 export function createSearchHandler({ search, timeoutMs }: SearchHandlerOptions) {
   return async function handle(request: Request): Promise<Response> {
-    // 1) 요청 내용(JSON)을 읽는다
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return errorResponse(400, "INVALID_JSON", "요청 형식이 올바르지 않습니다.");
-    }
+    // 1) 요청 내용(JSON)을 크기 제한을 두고 읽는다 (너무 크면 413, 깨졌으면 400)
+    const read = await readJsonBody(request);
+    if (!read.ok) return read.response;
 
     // 2) 입력값을 검사한다
-    const validation = validateSearchCondition(body);
+    const validation = validateSearchCondition(read.value);
     if (!validation.ok) {
       return errorResponse(400, "INVALID_INPUT", validation.message);
     }

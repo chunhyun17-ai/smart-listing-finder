@@ -17,8 +17,23 @@ export interface NewContact {
   phone: string;
 }
 
-/** 파일 경로를 받아 연락처 저장소를 만든다 (테스트에서는 임시 파일을 넘긴다) */
-export function createContactStore(filePath: string) {
+/** 저장할 수 있는 연락처 최대 개수 (끝없이 늘어나 디스크를 채우는 것을 막는다) */
+export const MAX_CONTACTS = 500;
+
+/** 연락처 개수 상한을 넘었을 때 던지는 오류 */
+export class ContactLimitError extends Error {
+  constructor(limit: number) {
+    super(`저장할 수 있는 연락처는 최대 ${limit}개입니다. 안 쓰는 연락처를 정리해 주세요.`);
+    this.name = "ContactLimitError";
+  }
+}
+
+/** 파일 경로를 받아 연락처 저장소를 만든다 (테스트에서는 임시 파일과 작은 상한을 넘긴다) */
+export function createContactStore(
+  filePath: string,
+  options: { maxContacts?: number } = {},
+) {
+  const maxContacts = options.maxContacts ?? MAX_CONTACTS;
   // 저장 요청이 동시에 와도 파일이 꼬이지 않도록 한 번에 하나씩 처리한다
   let queue: Promise<unknown> = Promise.resolve();
   function inOrder<T>(task: () => Promise<T>): Promise<T> {
@@ -68,6 +83,8 @@ export function createContactStore(filePath: string) {
           saved = { ...contacts[index], ...input, savedAt };
           contacts[index] = saved;
         } else {
+          // 새 연락처는 상한을 넘으면 저장하지 않는다 (이미 있는 매물의 수정은 허용)
+          if (contacts.length >= maxContacts) throw new ContactLimitError(maxContacts);
           saved = { id: randomUUID(), ...input, savedAt };
           contacts.push(saved);
         }

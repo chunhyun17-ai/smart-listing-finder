@@ -9,6 +9,9 @@ export type ValidationResult =
   | { ok: true; value: SearchCondition }
   | { ok: false; message: string };
 
+/** 지역·부동산 형태 글자 최대 길이 (이상하게 긴 값을 막는다) */
+const MAX_TEXT_LENGTH = 50;
+
 /** 값이 0 이상의 유한한 숫자인지 확인한다 */
 function isNonNegativeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -41,6 +44,9 @@ export function validateSearchCondition(input: unknown): ValidationResult {
   }
   if (!isNonEmptyString(propertyType)) {
     return { ok: false, message: "부동산 형태를 선택해 주세요." };
+  }
+  if (region.trim().length > MAX_TEXT_LENGTH || propertyType.trim().length > MAX_TEXT_LENGTH) {
+    return { ok: false, message: "지역과 부동산 형태는 50자 이하여야 합니다." };
   }
 
   return {
