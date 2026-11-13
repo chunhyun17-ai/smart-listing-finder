@@ -8,6 +8,8 @@
 
 import { useState, type FormEvent } from "react";
 import ListingList from "@/components/ListingList";
+import ResultSummary from "@/components/ResultSummary";
+import { filterCleanListings, summarizeSuspicions } from "@/lib/suspicion/summarize";
 import type { Listing } from "@/types/listing";
 import type { SuspicionResult } from "@/types/suspicion";
 import {
@@ -48,6 +50,8 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
   const [region, setRegion] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  // "알짜 매물만 보기": 기본은 꺼 둔다 (의심 매물도 숨기지 않고 함께 보여준다)
+  const [onlyClean, setOnlyClean] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -201,9 +205,18 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
 
       {/* 매물 목록: 조회에 성공하고 결과가 있을 때만 보여준다 (실패 시에는 비워 둔다) */}
       {status.kind === "done" && status.total > 0 && (
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col gap-4">
+          <ResultSummary
+            summary={summarizeSuspicions(status.suspicions)}
+            onlyClean={onlyClean}
+            onToggle={setOnlyClean}
+          />
           <ListingList
-            listings={status.listings}
+            listings={
+              onlyClean
+                ? filterCleanListings(status.listings, status.suspicions)
+                : status.listings
+            }
             suspicions={status.suspicions}
             onContactSaved={onContactSaved}
           />
