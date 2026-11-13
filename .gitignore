@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# 저장한 연락처 등 개인정보 데이터 (절대 올리지 않는다)
+/data/
+
+# 삭제 대신 옮겨 두는 폴더 (작업 후 직접 확인하고 삭제)
+/trash-can/
+
 # vercel
 .vercel
 
