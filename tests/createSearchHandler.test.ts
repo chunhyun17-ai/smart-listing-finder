@@ -119,6 +119,28 @@ describe("매물 조회 요청 처리", () => {
     expect(data.listings).toBeUndefined();
   });
 
+  it("결과가 5건 미만이면 가격 비교를 하지 않았다고 알리고(priceRuleSkipped), 5건 이상이면 알리지 않는다", async () => {
+    const handler = createSearchHandler({ search: searchListings, timeoutMs: 5000 });
+    // 서초구 아파트 20억 이하: 10건 → 가격 비교 함
+    const many = await (await handler(request(validCondition))).json();
+    expect(many.priceRuleSkipped).toBe(false);
+    // 마포구 빌라: 1건 → 가격 비교 못 함
+    const few = await (
+      await handler(request({ ...validCondition, region: "서울 마포구", propertyType: "빌라" }))
+    ).json();
+    expect(few.total).toBe(1);
+    expect(few.priceRuleSkipped).toBe(true);
+  });
+
+  it("결과가 0건이면 가격 비교 생략 안내는 하지 않는다", async () => {
+    const handler = createSearchHandler({ search: searchListings, timeoutMs: 5000 });
+    const none = await (
+      await handler(request({ ...validCondition, region: "부산 해운대구" }))
+    ).json();
+    expect(none.total).toBe(0);
+    expect(none.priceRuleSkipped).toBe(false);
+  });
+
   it("조건에 맞는 매물이 없으면 실패가 아니라 0건으로 응답한다", async () => {
     const handler = createSearchHandler({ search: searchListings, timeoutMs: 5000 });
     const response = await handler(

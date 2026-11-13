@@ -9,6 +9,9 @@
 import { useState, type FormEvent } from "react";
 import ListingList from "@/components/ListingList";
 import ResultSummary from "@/components/ResultSummary";
+import { describeResult } from "@/lib/format/describeResult";
+import { FetchTimeoutError, fetchJsonWithTimeout } from "@/lib/http/fetchJsonWithTimeout";
+import { CLIENT_SEARCH_TIMEOUT_MS } from "@/lib/listings/constants";
 import { filterCleanListings, summarizeSuspicions } from "@/lib/suspicion/summarize";
 import type { Listing } from "@/types/listing";
 import type { SuspicionResult } from "@/types/suspicion";
@@ -32,6 +35,8 @@ type Status =
       fetchedAt: string;
       listings: Listing[];
       suspicions: SuspicionResult[];
+      /** 결과가 적어 가격 비교를 하지 못했는지 */
+      priceRuleSkipped: boolean;
     };
 
 const inputClass =
@@ -75,13 +80,19 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
     // 2) 서버에 조회를 요청한다
     setStatus({ kind: "loading" });
     try {
-      const response = await fetch("/api/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validation.value),
-      });
-      const data = await response.json();
-      if (!response.ok) {
+      // 서버가 응답하지 않아도 끝없이 기다리지 않도록 시간 제한을 둔다
+      const result = await fetchJsonWithTimeout(
+        "/api/search",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(validation.value),
+        },
+        CLIENT_SEARCH_TIMEOUT_MS,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 서버가 보낸 JSON의 모양은 위 API 설계를 따른다
+      const data = result.data as any;
+      if (!result.ok || data === null) {
         setStatus({
           kind: "error",
           message: data?.error?.message ?? "조회 실패: 알 수 없는 오류입니다.",
@@ -94,11 +105,15 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
         fetchedAt: data.fetchedAt,
         listings: data.listings,
         suspicions: data.suspicions,
+        priceRuleSkipped: Boolean(data.priceRuleSkipped),
       });
-    } catch {
+    } catch (error) {
       setStatus({
         kind: "error",
-        message: "조회 실패: 서버에 연결하지 못했습니다.",
+        message:
+          error instanceof FetchTimeoutError
+            ? "조회 실패: 1분 안에 결과가 오지 않았습니다. 잠시 후 다시 시도해 주세요."
+            : "조회 실패: 서버에 연결하지 못했습니다.",
       });
     }
   }
@@ -197,10 +212,7 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
         {status.kind === "error" && (
           <span className="text-red-600 dark:text-red-400">{status.message}</span>
         )}
-        {status.kind === "done" &&
-          (status.total === 0
-            ? "조건에 맞는 매물이 없습니다."
-            : `조회 시각: ${new Date(status.fetchedAt).toLocaleString("ko-KR")} (${status.total}건)`)}
+        {status.kind === "done" && describeResult(status.total, status.fetchedAt)}
       </p>
 
       {/* 매물 목록: 조회에 성공하고 결과가 있을 때만 보여준다 (실패 시에는 비워 둔다) */}
@@ -208,6 +220,7 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
         <div className="mt-4 flex flex-col gap-4">
           <ResultSummary
             summary={summarizeSuspicions(status.suspicions)}
+            priceRuleSkipped={status.priceRuleSkipped}
             onlyClean={onlyClean}
             onToggle={setOnlyClean}
           />

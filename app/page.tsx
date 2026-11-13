@@ -1,6 +1,7 @@
 // 첫 화면
 // Design Ref: DESIGN.md §1 "화면 구성" — ① 제목, ② 검색 조건, ③ 검색 결과, ④ 저장한 연락처
 
+import DataSourceNotice from "@/components/DataSourceNotice";
 import Workspace from "@/components/Workspace";
 
 export default function Home() {
@@ -11,6 +12,7 @@ export default function Home() {
         <h1 className="text-5xl font-bold tracking-tight text-black dark:text-zinc-50">
           알짜 매물 탐색기
         </h1>
+        <DataSourceNotice />
         <Workspace />
       </main>
     </div>

@@ -3,16 +3,24 @@
 // 기본은 모든 매물을 보여주고, 사용자가 직접 체크했을 때만 알짜 매물만 보여준다.
 // 숨긴 건수는 항상 알려 준다. 색만으로 구분하지 않도록 글자도 함께 보여준다.
 
+import { MIN_LISTINGS_FOR_PRICE_RULE } from "@/lib/suspicion/priceRule";
 import type { SuspicionSummary } from "@/lib/suspicion/summarize";
 
 interface ResultSummaryProps {
   summary: SuspicionSummary;
+  /** 결과가 적어 가격 비교를 하지 못했는지 */
+  priceRuleSkipped: boolean;
   /** "알짜 매물만 보기"가 켜져 있는지 */
   onlyClean: boolean;
   onToggle: (next: boolean) => void;
 }
 
-export default function ResultSummary({ summary, onlyClean, onToggle }: ResultSummaryProps) {
+export default function ResultSummary({
+  summary,
+  priceRuleSkipped,
+  onlyClean,
+  onToggle,
+}: ResultSummaryProps) {
   const hidden = summary.check + summary.suspect;
 
   return (
@@ -31,6 +39,13 @@ export default function ResultSummary({ summary, onlyClean, onToggle }: ResultSu
           <span aria-hidden="true">🚫 </span>의심 {summary.suspect}건
         </li>
       </ul>
+
+      {priceRuleSkipped && (
+        <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+          ℹ️ 비교할 매물이 {MIN_LISTINGS_FOR_PRICE_RULE}건 미만이라 가격 비교는 하지 않았어요.
+          중복 등록 여부만 확인했으니, 가격은 직접 살펴 주세요.
+        </p>
+      )}
 
       <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-zinc-800 dark:text-zinc-200">
         <input

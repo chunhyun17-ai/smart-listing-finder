@@ -6,6 +6,7 @@
 
 import ContactSaveForm from "@/components/ContactSaveForm";
 import { formatPrice } from "@/lib/format/formatPrice";
+import { toSafeHttpsUrl } from "@/lib/listings/safeUrl";
 import type { Listing } from "@/types/listing";
 import type { SuspicionResult, SuspicionStatus } from "@/types/suspicion";
 
@@ -45,6 +46,8 @@ export default function ListingList({
     <ul className="flex flex-col gap-3">
       {listings.map((listing) => {
         const suspicion = suspicionById.get(listing.id);
+        // 안전한 https 주소일 때만 링크로 만든다 (아니면 "원본 링크 없음")
+        const safeUrl = toSafeHttpsUrl(listing.sourceUrl);
         const badge =
           suspicion && suspicion.status !== "normal"
             ? BADGE[suspicion.status]
@@ -92,14 +95,18 @@ export default function ListingList({
               <span className="text-zinc-600 dark:text-zinc-400">
                 등록: {listing.registrantName}
               </span>
-              <a
-                href={listing.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-zinc-950 underline dark:text-zinc-50"
-              >
-                원본 보기
-              </a>
+              {safeUrl ? (
+                <a
+                  href={safeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-950 underline dark:text-zinc-50"
+                >
+                  원본 보기
+                </a>
+              ) : (
+                <span className="text-zinc-500 dark:text-zinc-400">원본 링크 없음</span>
+              )}
             </div>
 
             <ContactSaveForm listing={listing} onSaved={onContactSaved} />

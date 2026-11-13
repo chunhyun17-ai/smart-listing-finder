@@ -15,6 +15,10 @@ export type ContactValidationResult =
 /** 이름 최대 길이 */
 const MAX_NAME_LENGTH = 50;
 
+/** 매물 번호 최대 길이와 허용 글자(영문·숫자·-·_) */
+const MAX_LISTING_ID_LENGTH = 50;
+const LISTING_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+
 /** 전화번호에 쓸 수 있는 글자: 숫자, +, -, 공백, 괄호 */
 const PHONE_PATTERN = /^[0-9+\-\s()]+$/;
 
@@ -30,6 +34,12 @@ export function validateContactInput(input: unknown): ContactValidationResult {
 
   if (typeof listingId !== "string" || listingId.trim() === "") {
     return { ok: false, message: "어느 매물의 연락처인지 알 수 없습니다." };
+  }
+  if (
+    listingId.trim().length > MAX_LISTING_ID_LENGTH ||
+    !LISTING_ID_PATTERN.test(listingId.trim())
+  ) {
+    return { ok: false, message: "매물 번호가 올바르지 않습니다." };
   }
   if (typeof name !== "string" || name.trim() === "") {
     return { ok: false, message: "이름을 입력해 주세요." };
