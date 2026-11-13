@@ -12,8 +12,10 @@ import { filterByPrice } from "./filterByPrice";
 import { validateSearchCondition } from "./validateSearchCondition";
 import { SearchTimeoutError, withTimeout } from "./withTimeout";
 
-/** 조회 제한 시간: 60초 */
-export const SEARCH_TIMEOUT_MS = 60_000;
+import { SEARCH_TIMEOUT_MS } from "./constants";
+
+/** 조회 제한 시간: 60초 (값은 constants.ts에 있고, 기존 import 경로를 위해 다시 내보낸다) */
+export { SEARCH_TIMEOUT_MS };
 
 /** 화면에 보여줄 조회 실패 안내 문구 */
 const SEARCH_FAILED_MESSAGE = "조회 실패: 매물을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.";
