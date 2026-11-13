@@ -10,6 +10,7 @@ import {
   PRICE_CHECK_DROP,
   PRICE_SUSPECT_DROP,
   findLowPriceSuspicions,
+  isPriceRuleApplicable,
 } from "@/lib/suspicion/priceRule";
 import { makeListing, makeNormalListings } from "./helpers";
 
@@ -64,6 +65,22 @@ describe("가격 의심 규칙", () => {
 
   it("빈 목록은 빈 결과를 돌려준다", () => {
     expect(findLowPriceSuspicions([])).toEqual([]);
+  });
+
+  it("가격 규칙을 적용할 수 있는지 알려 준다: 5건부터 가능, 4건은 불가", () => {
+    expect(isPriceRuleApplicable(makeNormalListings(5))).toBe(true);
+    expect(isPriceRuleApplicable(makeNormalListings(4))).toBe(false);
+    expect(isPriceRuleApplicable([])).toBe(false);
+  });
+
+  it("면적이 0이거나 가격이 이상한 매물은 5건에 세지 않는다", () => {
+    const listings = [
+      ...makeNormalListings(4),
+      makeListing({ id: "bad-area", area: 0 }),
+      makeListing({ id: "bad-price", price: Number.NaN }),
+    ];
+    expect(listings).toHaveLength(6);
+    expect(isPriceRuleApplicable(listings)).toBe(false);
   });
 
   it("면적이 0이거나 가격이 이상한 매물은 비교에서 빼고, 오류 없이 처리한다", () => {

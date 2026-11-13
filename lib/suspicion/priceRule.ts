@@ -42,6 +42,17 @@ function formatPerArea(won: number): string {
 }
 
 /**
+ * 가격 규칙을 적용할 수 있는지 알려 준다. 면적당 가격을 계산할 수 있는 매물이 충분히 있어야 한다.
+ * (적용할 수 없으면 화면에서 "가격 비교는 하지 않았어요"라고 알려 "이상 없음"과 구분한다)
+ */
+export function isPriceRuleApplicable(listings: Listing[]): boolean {
+  return (
+    listings.filter((listing) => pricePerArea(listing) !== null).length >=
+    MIN_LISTINGS_FOR_PRICE_RULE
+  );
+}
+
+/**
  * 같은 검색 결과의 중간값보다 가격이 훨씬 낮은 매물의 판정 결과를 돌려준다.
  * 해당하지 않는 매물은 결과에 포함하지 않는다. (이상 없음은 뒤에서 합칠 때 채운다)
  */

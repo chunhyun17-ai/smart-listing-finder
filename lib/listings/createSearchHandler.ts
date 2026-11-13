@@ -7,6 +7,7 @@
 import type { Listing, SearchCondition } from "@/types/listing";
 import { readJsonBody } from "../http/readJsonBody";
 import { assessListings } from "../suspicion/assessListings";
+import { isPriceRuleApplicable } from "../suspicion/priceRule";
 import { filterByPrice } from "./filterByPrice";
 import { validateSearchCondition } from "./validateSearchCondition";
 import { SearchTimeoutError, withTimeout } from "./withTimeout";
@@ -50,9 +51,12 @@ export function createSearchHandler({ search, timeoutMs }: SearchHandlerOptions)
       const listings = filterByPrice(fetched, priceMin, priceMax);
       // 허위매물 의심 판정을 붙인다. 의심 매물도 목록에서 빼지 않고 함께 돌려준다
       const suspicions = assessListings(listings);
+      // 결과가 적어 가격 비교를 못 했다면 화면이 알려 줄 수 있게 함께 돌려준다
+      const priceRuleSkipped = listings.length > 0 && !isPriceRuleApplicable(listings);
       return Response.json({
         listings,
         suspicions,
+        priceRuleSkipped,
         fetchedAt: new Date().toISOString(),
         total: listings.length,
       });

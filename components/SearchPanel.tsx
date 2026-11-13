@@ -32,6 +32,8 @@ type Status =
       fetchedAt: string;
       listings: Listing[];
       suspicions: SuspicionResult[];
+      /** 결과가 적어 가격 비교를 하지 못했는지 */
+      priceRuleSkipped: boolean;
     };
 
 const inputClass =
@@ -94,6 +96,7 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
         fetchedAt: data.fetchedAt,
         listings: data.listings,
         suspicions: data.suspicions,
+        priceRuleSkipped: Boolean(data.priceRuleSkipped),
       });
     } catch {
       setStatus({
@@ -208,6 +211,7 @@ export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
         <div className="mt-4 flex flex-col gap-4">
           <ResultSummary
             summary={summarizeSuspicions(status.suspicions)}
+            priceRuleSkipped={status.priceRuleSkipped}
             onlyClean={onlyClean}
             onToggle={setOnlyClean}
           />
