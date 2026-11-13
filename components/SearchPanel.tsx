@@ -9,6 +9,7 @@
 import { useState, type FormEvent } from "react";
 import ListingList from "@/components/ListingList";
 import type { Listing } from "@/types/listing";
+import type { SuspicionResult } from "@/types/suspicion";
 import {
   PROPERTY_TYPE_OPTIONS,
   REGION_OPTIONS,
@@ -23,7 +24,13 @@ type Status =
   | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "done"; total: number; fetchedAt: string; listings: Listing[] };
+  | {
+      kind: "done";
+      total: number;
+      fetchedAt: string;
+      listings: Listing[];
+      suspicions: SuspicionResult[];
+    };
 
 const inputClass =
   "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-base text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50";
@@ -77,6 +84,7 @@ export default function SearchPanel() {
         total: data.total,
         fetchedAt: data.fetchedAt,
         listings: data.listings,
+        suspicions: data.suspicions,
       });
     } catch {
       setStatus({
@@ -189,7 +197,10 @@ export default function SearchPanel() {
       {/* 매물 목록: 조회에 성공하고 결과가 있을 때만 보여준다 (실패 시에는 비워 둔다) */}
       {status.kind === "done" && status.total > 0 && (
         <div className="mt-4">
-          <ListingList listings={status.listings} />
+          <ListingList
+            listings={status.listings}
+            suspicions={status.suspicions}
+          />
         </div>
       )}
     </section>

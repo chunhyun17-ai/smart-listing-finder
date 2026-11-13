@@ -5,6 +5,7 @@
 // Plan SC: 1분 안에 결과가 없으면 임의로 채우지 않고 "조회 실패"로 알린다
 
 import type { Listing, SearchCondition } from "@/types/listing";
+import { assessListings } from "../suspicion/assessListings";
 import { filterByPrice } from "./filterByPrice";
 import { validateSearchCondition } from "./validateSearchCondition";
 import { SearchTimeoutError, withTimeout } from "./withTimeout";
@@ -50,8 +51,11 @@ export function createSearchHandler({ search, timeoutMs }: SearchHandlerOptions)
       // 선택한 금액 범위를 벗어난 매물은 여기서 뺀다
       const { priceMin, priceMax } = validation.value;
       const listings = filterByPrice(fetched, priceMin, priceMax);
+      // 허위매물 의심 판정을 붙인다. 의심 매물도 목록에서 빼지 않고 함께 돌려준다
+      const suspicions = assessListings(listings);
       return Response.json({
         listings,
+        suspicions,
         fetchedAt: new Date().toISOString(),
         total: listings.length,
       });
