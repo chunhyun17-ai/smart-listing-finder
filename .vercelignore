@@ -1,0 +1,14 @@
+# Vercel에 올리지 않을 파일 (비밀 값, 개인정보, 작업용 폴더)
+# 이 파일이 있으면 Vercel CLI는 .gitignore 대신 이 목록을 쓰므로 비밀 파일도 여기에 다시 적어 둔다.
+
+.env
+.env.*
+.vercel
+node_modules
+.next
+data
+trash-can
+.bkit
+.claude
+.git
+tsconfig.tsbuildinfo
