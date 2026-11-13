@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 알짜 매물 탐색기
 
-## Getting Started
+부동산 매물을 **금액 범위·지역·부동산 형태**로 조회하고, 허위매물이 의심되는 매물에는 **이유와 함께 표시**를 붙여 주는 웹앱입니다.
+네이버 부동산에서 매번 조건을 다시 설정해 검색하고, 허위매물을 직접 가려내느라 하루 3시간 이상 쓰던 불편을 줄이려고 만들었습니다.
 
-First, run the development server:
+> **지금은 샘플(가짜) 데이터로 동작합니다.** 네이버 부동산에는 접속하지 않습니다.
+> 공식 매물 API가 없고, 자동 수집은 이용약관·`robots.txt`와 충돌할 수 있어 연계를 보류했습니다. 자세한 내용은 [docs/naver-terms-check.md](docs/naver-terms-check.md)를 보세요.
+> 화면의 매물, 주소, 중개사 이름, 전화번호는 모두 지어낸 것입니다.
+
+## 주요 기능
+
+1. **매물 검색**: 금액 범위(억 원 단위), 지역, 부동산 형태로 검색합니다.
+   - 선택한 금액 범위를 벗어난 매물은 **절대 보여주지 않습니다**. (최대 금액과 같은 매물은 포함합니다)
+   - 모든 결과에 **조회 시각**을 함께 표시합니다.
+   - 조회가 1분 안에 끝나지 않거나 오류가 나면 매물을 임의로 채우지 않고 **"조회 실패"**로 알립니다.
+2. **허위매물 의심 표시**: 의심되는 매물을 숨기지 않고, 표시와 **이유**를 붙여 함께 보여줍니다.
+   - "허위"라고 단정하지 않고 **"의심"** 또는 **"확인 필요"**로만 표시합니다. 최종 판단은 사용자가 합니다.
+3. **결과 요약과 "알짜 매물만 보기"**: 알짜·확인 필요·의심 건수를 한눈에 보고, 체크하면 의심이 없는 매물만 볼 수 있습니다. (기본은 전체 표시)
+4. **연락처 저장**: 매물 카드에서 등록자·중개사 이름과 전화번호를 저장하고, 아래 목록에서 다시 봅니다. (내 컴퓨터에서만 동작합니다. 아래 "알아둘 점" 참고)
+
+### 의심 판정 기준 (제안값)
+
+| 규칙 | 확인 필요 | 의심 |
+|---|---|---|
+| 같은 주소·면적·층의 매물이 여러 건 (중복 등록) | 2건 (공동중개일 수 있음) | 3건 이상 |
+| ㎡당 가격이 같은 검색 결과의 중간값보다 낮음 | 15% 이상 | 30% 이상 |
+
+비교할 매물이 5건 미만이면 가격 규칙은 적용하지 않습니다. 기준 숫자는 실제 데이터로 써 본 뒤 확정할 예정입니다.
+
+## 실행 방법
+
+[Node.js](https://nodejs.org)가 필요합니다.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 http://localhost:3000 을 엽니다. 개발 서버는 보안을 위해 **내 컴퓨터(127.0.0.1)에서만** 열립니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm test          # 자동 테스트 (Vitest)
+npm run lint      # 코드 검사
+npm run build     # 배포용 빌드
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 사용한 기술
 
-## Learn More
+- [Next.js](https://nextjs.org) (App Router) · TypeScript · Tailwind CSS
+- 자동 테스트: Vitest (개발용)
+- 배포: Vercel
 
-To learn more about Next.js, take a look at the following resources:
+## 폴더 구조
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/            첫 화면과 서버 코드(API): /api/search, /api/contacts
+components/     검색 화면, 결과 요약, 매물 목록, 연락처 저장·목록
+lib/            조회·금액 걸러내기, 허위매물 의심 규칙, 연락처 저장소
+types/          데이터 모양(매물, 판정 결과, 연락처)
+tests/          자동 테스트
+docs/           네이버 부동산 약관 확인 기록
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 기획·설계·점검 문서
 
-## Deploy on Vercel
+| 문서 | 내용 |
+|---|---|
+| [PRD.md](PRD.md) | 기획서: 문제 정의, 목표, 사용자 흐름, 주요 기능과 지킬 규칙, 범위, 보안, 기술 스택 |
+| [PLAN.md](PLAN.md) | 계획서: 이번 사이클 목표와 성공 기준, 작업 순서와 진행 상태, 위험 |
+| [DESIGN.md](DESIGN.md) | 설계서: 화면 구성, 데이터 흐름, 기술 선택, 테스트 계획 |
+| [CHECK.md](CHECK.md) | 점검 결과: 성공 기준, 설계와 구현의 차이, 보안 점검, 고칠 항목 |
+| [CLAUDE.md](CLAUDE.md) | AI와 함께 개발하며 지킨 프로젝트 규칙 |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 알아둘 점
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 인터넷에 올린 배포판은 **샘플 데이터를 보여주는 확인용**입니다. 배포 서버에는 파일을 저장할 수 없어서 **연락처 저장은 동작하지 않습니다.** 연락처를 인터넷에서 쓰려면 저장 방식과 로그인 같은 접근 제한을 새로 정해야 합니다. (공개 전 필수 과제로 [CHECK.md](CHECK.md)에 적어 두었습니다)
+- 연락처는 개인정보라서 내 컴퓨터의 `data/contacts.json`에만 저장하고 Git에는 올라가지 않게 막아 두었습니다.
+- 비밀 값(`.env`)과 `node_modules`는 저장소에 올리지 않습니다. 이 앱은 환경변수를 쓰지 않습니다.
+- 허위매물 판정은 참고용 표시일 뿐이며, 실제 거래 전에는 직접 확인해야 합니다.
