@@ -3,6 +3,7 @@
 // 저장소를 바깥에서 끼워 넣을 수 있게 분리해 두었다. (테스트에서는 임시 파일 저장소를 넣는다)
 
 import type { Contact } from "@/types/contact";
+import { guardJsonPost } from "../http/requestGuards";
 import type { NewContact } from "./contactStore";
 import { validateContactInput } from "./validateContactInput";
 
@@ -34,6 +35,10 @@ export function createContactsHandlers(store: ContactStoreLike) {
 
     /** 연락처를 저장하고, 저장된 내용을 돌려준다 */
     async POST(request: Request): Promise<Response> {
+      // 다른 사이트가 몰래 보낸 요청과 JSON이 아닌 요청은 먼저 거절한다
+      const rejected = guardJsonPost(request);
+      if (rejected) return rejected;
+
       let body: unknown;
       try {
         body = await request.json();
