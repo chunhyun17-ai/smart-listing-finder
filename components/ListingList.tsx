@@ -2,8 +2,9 @@
 // Design Ref: DESIGN.md §1 — 제목, 가격, 주소·면적·층·형태, 등록자·중개사, 의심 표시와 이유
 // Plan SC: 의심 매물은 숨기지 않고 의심 표시를 붙여 함께 보여준다. 의심·확인 필요에는 이유를 적는다.
 //          최종 판단은 사용자가 한다. (그래서 "허위"라고 단정하는 표현은 쓰지 않는다)
-// 연락처 저장 버튼은 PLAN 13번에서 이 카드에 추가한다.
+// 카드 아래에는 연락처 저장 버튼(ContactSaveForm)이 있다.
 
+import ContactSaveForm from "@/components/ContactSaveForm";
 import { formatPrice } from "@/lib/format/formatPrice";
 import type { Listing } from "@/types/listing";
 import type { SuspicionResult, SuspicionStatus } from "@/types/suspicion";
@@ -12,6 +13,8 @@ interface ListingListProps {
   listings: Listing[];
   /** 매물별 판정 결과 (매물 번호로 찾는다) */
   suspicions: SuspicionResult[];
+  /** 연락처를 저장했을 때 부른다 */
+  onContactSaved: () => void;
 }
 
 /** 의심·확인 필요 표시의 글자와 색. 색만으로 구분하지 않도록 글자도 함께 보여준다 */
@@ -31,7 +34,11 @@ const BADGE: Record<
   },
 };
 
-export default function ListingList({ listings, suspicions }: ListingListProps) {
+export default function ListingList({
+  listings,
+  suspicions,
+  onContactSaved,
+}: ListingListProps) {
   const suspicionById = new Map(suspicions.map((s) => [s.listingId, s]));
 
   return (
@@ -94,6 +101,8 @@ export default function ListingList({ listings, suspicions }: ListingListProps) 
                 원본 보기
               </a>
             </div>
+
+            <ContactSaveForm listing={listing} onSaved={onContactSaved} />
           </li>
         );
       })}

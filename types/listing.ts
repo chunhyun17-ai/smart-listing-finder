@@ -33,6 +33,8 @@ export interface Listing {
   floor: number;
   /** 등록자·중개사 이름 */
   registrantName: string;
+  /** 등록자·중개사 전화번호 (개인정보). 없을 수 있다 */
+  registrantPhone?: string;
   /** 원본 링크 */
   sourceUrl: string;
   /** 조회 시각 (ISO 형식 문자열, 예: 2026-11-12T14:30:00+09:00) */

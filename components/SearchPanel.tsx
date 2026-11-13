@@ -36,7 +36,12 @@ const inputClass =
   "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-base text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50";
 const labelClass = "mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
-export default function SearchPanel() {
+interface SearchPanelProps {
+  /** 매물 카드에서 연락처를 저장했을 때 부른다 */
+  onContactSaved: () => void;
+}
+
+export default function SearchPanel({ onContactSaved }: SearchPanelProps) {
   // 입력값은 모두 글자로 들고 있다가, 검색할 때 숫자로 바꾼다
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("20");
@@ -200,6 +205,7 @@ export default function SearchPanel() {
           <ListingList
             listings={status.listings}
             suspicions={status.suspicions}
+            onContactSaved={onContactSaved}
           />
         </div>
       )}
